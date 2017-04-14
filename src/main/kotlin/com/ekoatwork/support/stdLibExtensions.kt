@@ -26,7 +26,7 @@ inline fun <reified T> withInstanceOf(any: Any, doWithA: T.() -> Unit): Boolean 
     }
 }
 
-val Boolean?.yesNoOrNull: String get() = when (this) {
+inline val Boolean?.yesNoOrNull: String get() = when (this) {
     null -> "null"
     true -> "YES"
     else -> "NO"
