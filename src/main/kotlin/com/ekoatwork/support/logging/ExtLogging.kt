@@ -40,11 +40,12 @@ interface ExtLogger : Logger {
 
 
     companion object {
+
         inline operator fun <reified T> invoke(): ExtLogger {
             return object : Logger by LoggerFactory.getLogger(T::class.java), ExtLogger {}
         }
 
-        operator inline fun <reified T> invoke(name: String): ExtLogger {
+        inline operator fun <reified T> invoke(name: String): ExtLogger {
             val fqn = "${T::class.qualifiedName}.$name"
             return object : Logger by LoggerFactory.getLogger(fqn), ExtLogger {}
         }

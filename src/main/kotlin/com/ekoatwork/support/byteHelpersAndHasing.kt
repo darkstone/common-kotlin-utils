@@ -24,8 +24,8 @@ import java.util.function.Supplier
 
 private val HEX_CHARS = "0123456789ABCDEF".toCharArray()
 
-fun ByteArray.toHex() : String {
-    return fold(StringBuilder()) {stringBuilder,byte->
+fun ByteArray.toHex(): String {
+    return fold(StringBuilder()) { stringBuilder, byte ->
         stringBuilder.apply {
             val octet = byte.toInt()
             val i0 = (octet and 0xF0) ushr 4
@@ -44,7 +44,7 @@ private const val DOUBLE_BYTES_SIZE: Int = java.lang.Double.BYTES
 private const val INTEGER_BYTES_SIZE: Int = java.lang.Integer.BYTES
 private const val SHORT_BYTES_SIZE: Int = java.lang.Short.BYTES
 
-fun Long.toBytes():ByteArray {
+fun Long.toBytes(): ByteArray {
     return ByteBuffer.allocate(LONG_BYTES_SIZE).let { buffer ->
         buffer.putLong(this)
         buffer.array()
@@ -73,7 +73,7 @@ fun Short.toBytes(): ByteArray {
 }
 
 
-enum class HashFunction(private val digesterName: String): Supplier<MessageDigest> {
+enum class HashFunction(private val digesterName: String) : Supplier<MessageDigest> {
     MD2("MD2"),
     MD5("md5"),
     SHA1("SHA-1"),
@@ -82,9 +82,10 @@ enum class HashFunction(private val digesterName: String): Supplier<MessageDiges
     SHA384("SHA-384"),
     SHA512("SHA-512")
     ;
+
     operator fun invoke(): MessageDigest = MessageDigest.getInstance(digesterName)
     override fun get(): MessageDigest = invoke()
-    fun digest(collectHashableBytes: ByteSink.() -> Unit): ByteArray  = invoke().let { md ->
+    fun digest(collectHashableBytes: ByteSink.() -> Unit): ByteArray = invoke().let { md ->
         collectHashableBytes(md.toByteSink())
         return md.digest()
     }
@@ -98,37 +99,38 @@ interface ByteSink {
     fun put(long: Long): ByteSink = put(long.toBytes())
     fun put(short: Short): ByteSink = put(short.toBytes())
     fun put(int: Int): ByteSink = put(int.toBytes())
-    fun put(f:Double): ByteSink = put(f.toBytes())
+    fun put(f: Double): ByteSink = put(f.toBytes())
 
-    fun outputStream():OutputStream = object : OutputStream() {
+    fun outputStream(): OutputStream = object : OutputStream() {
 
         override fun write(b: Int) {
             put(b)
         }
 
         override fun write(b: ByteArray?) {
-            if (b!=null) put(b)
+            if (b != null) put(b)
         }
     }
 }
 
 fun MessageDigest.toByteSink(): ByteSink = byteSinkOf { bytes -> update(bytes) }
 
-@FunctionalInterface interface PrimitivesFunnel<in T> {
+@FunctionalInterface
+interface PrimitivesFunnel<in T> {
     fun funnelToSink(request: T, byteSink: ByteSink)
 }
 
 typealias FunnelToByteSink<T> = (T, ByteSink) -> Unit
 
 inline fun <T> funnelOf(crossinline funnel: FunnelToByteSink<T>): PrimitivesFunnel<T> {
-    return object: PrimitivesFunnel<T> {
+    return object : PrimitivesFunnel<T> {
         override fun funnelToSink(request: T, byteSink: ByteSink) {
             funnel(request, byteSink)
         }
     }
 }
 
-fun byteSinkOf(block:(ByteArray)->Unit): ByteSink {
+fun byteSinkOf(block: (ByteArray) -> Unit): ByteSink {
     return object : ByteSink {
         override fun put(byteArray: ByteArray): ByteSink {
             block(byteArray)

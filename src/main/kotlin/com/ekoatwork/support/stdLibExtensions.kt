@@ -26,21 +26,11 @@ inline fun <reified T> withInstanceOf(any: Any, doWithA: T.() -> Unit): Boolean 
     }
 }
 
-inline val Boolean?.yesNoOrNull: String get() = when (this) {
-    null -> "null"
-    true -> "YES"
-    else -> "NO"
-}
-
-/**
- * Removes the return type. Allows to convert any call to [Unit]
- *
- * Example:
- *
- *      val r:Runnable = { 3 + 6 }.unit
- */
-inline val (()->Any?).unit:()->Unit get() = {this()}
+inline val Boolean?.yesNoOrNull: String get() = truth("Yes", "No", "Null")
 
 inline fun <T> Collection<T>.withEach(applyThis: T.() -> Unit) = forEach(applyThis)
 
 inline fun <T> Array<T>.withEach(applyThis: T.() -> Unit) = forEach(applyThis)
+
+fun <T> Boolean.truth(whenTrue:T, whenFalse:T) = if (this) whenTrue else whenFalse
+fun <T> Boolean?.truth(whenTrue: T, whenFalse: T, whenNull:T) = this?.truth(whenTrue, whenFalse) ?: whenNull
